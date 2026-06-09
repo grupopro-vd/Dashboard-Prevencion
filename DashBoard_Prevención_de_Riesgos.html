@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Reporte Prevención de Riesgos — Grupo Pro</title>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
-<script src="https://alcdn.msauth.net/browser/2.38.3/js/msal-browser.min.js"></script>
+<script src="https://alcdn.msauth.net/browser/2.39.0/js/msal-browser.min.js" crossorigin="anonymous"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-datalabels/2.2.0/chartjs-plugin-datalabels.min.js"></script>
@@ -2754,10 +2754,22 @@ async function loadFromSharePoint(){
 }
 
 // Iniciar MSAL automáticamente al cargar la página
-if(typeof msal !== 'undefined'){
-  initMSAL();
-} else {
-  console.warn('MSAL no disponible — modo manual activo');
+// Intentar iniciar MSAL
+try {
+  if(typeof msal !== 'undefined' && msal.PublicClientApplication){
+    initMSAL();
+  } else {
+    // Retry after 1 second in case CDN is slow
+    setTimeout(()=>{
+      if(typeof msal !== 'undefined' && msal.PublicClientApplication){
+        initMSAL();
+      } else {
+        console.warn('MSAL no disponible — modo manual activo');
+      }
+    }, 1000);
+  }
+} catch(e){
+  console.warn('MSAL error:', e);
 }
 
 // Drag over
